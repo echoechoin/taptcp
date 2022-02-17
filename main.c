@@ -5,8 +5,8 @@
 #include "tuntap.h"
 #include "ether.h"
 #include "arp.h"
-
-#define BUFSIZE 2000
+#include "skbuff.h"
+#include "ipv4.h"
 
 int main () {
     char dev[IFNAMSIZ] = "tap0";
@@ -27,14 +27,21 @@ int main () {
 
     arp_init(mac, inet_addr("192.168.200.100"));
     while(1) {
-        if (read(fd, buf, BUFSIZE) < 0) {
+        struct skbuff_t *skb = skb_alloc(BUFSIZE);
+        if (read(fd, skb->data, BUFSIZE) < 0) {
             perror("read");
             return 1;
         }
-        struct eth_hdr_t *hdr = (struct eth_hdr_t *) buf; 
+        struct eth_hdr_t *hdr = get_eth_hdr(skb);
+        
+        // arp报文处理
+        if (hdr->ethertype == ETHERTYPE_ARP) {
+            arp_recv(fd, skb);
+        }
 
-        if (ntohs(hdr->ethertype) == ETHERTYPE_ARP) {
-            arp_process(fd, hdr);
+        // IP报文处理
+        if (hdr->ethertype == ETHERTYPE_IPV4) {
+            ipv4_process(fd, hdr);
         }
     }
     

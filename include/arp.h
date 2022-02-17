@@ -1,5 +1,6 @@
 #include "ether.h"
 #include "list.h"
+#include "skbuff.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -60,4 +61,6 @@ u_int8_t mac_address[6];
 u_int32_t ip_address;
 
 int arp_init(u_int8_t *mac, u_int32_t ip);
-int arp_process(int fd, struct eth_hdr_t *eth_hdr);
+int arp_recv(int fd, struct skbuff_t *skb);
+int arp_request(u_int32_t sip, u_int32_t dip);
+int show_arp_table();

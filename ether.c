@@ -1,5 +1,11 @@
 #include "ether.h"
 
+struct eth_hdr_t *get_eth_hdr(struct skbuff_t *skb) {
+    struct eth_hdr_t *hdr = (struct eth_hdr_t *)skb_head(skb);
+    hdr->ethertype = ntohs(hdr->ethertype);
+    return hdr;
+}
+
 int get_mac_hex_type(u_int8_t *mac, char *s) {
     int i;
     for (i = 0; i < 6; i++) {

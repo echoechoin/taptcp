@@ -140,6 +140,8 @@ Yes: (almost definitely)
 
 # Let's code a TCP/IP stack, 2: IPv4 & ICMPv4
 
+
+## Internet Protocol version 4
 ```c++
 /*
  * IPv4 header(unit: bits)
@@ -220,3 +222,87 @@ struct iphdr {
     ```
 - saddr: 源地址，32bit
 - daddr: 目的地址，32bit
+
+## Internet Control Message Protocol version 4
+
+```c++
+/*
+ * ICMP header(unit: bits)
+ *  _____________________________
+ * |  type  | code  | checksum  |
+ * |____ ___|_______|___________|
+ * | 8bits  | 8bits | 16bits    |
+ * |________|_______|___________|
+ *
+ */
+struct icmp_v4 {
+    u_int8_t type;
+    u_int8_t code;
+    u_int16_t csum;
+    u_int8_t data[];
+} __attribute__((packed));
+```
+
+- type: 8bit，报文类型(本项目中暂时只使用0、3、8)
+    - 0: Echo Reply (ping reply)
+    - 3: Destination Unreachable (ping unreachable)
+    - 4: Source Quench
+    - 5: Redirect
+    - 8: Echo Request (ping request)
+    - 11: Time Exceeded
+    - 12: Parameter Problem
+    - 13: Timestamp
+    - 14: Timestamp Reply
+    - 15: Information Request
+    - 16: Information Reply
+    - 17: Address Mask Request
+    - 18: Address Mask Reply
+    - 30: Traceroute
+    - 31: Datagram Conversion Error
+- code: type产生的具体原因。
+- csum: icmp报文校验和（不仅仅是首部校验和），16bit
+- data: 长度受到MTU的限制，最大为1500字节，即1500 - 20 - 8 = 1472字节。 
+
+## icmp data
+
+```c++
+/*
+ * ICMP Echo Reply
+ *  ______________________________
+ * |  id    | seq    | data...   |
+ * |________|________|___________|
+ * | 16bits | 16bits |           |
+ * |________|________|___________|
+ */
+struct icmp_v4_echo_reply { 
+    u_int16_t id;
+    u_int16_t seq;
+    u_int8_t data[];
+} __attribute__((packed));
+```
+
+- id: 16bit，标识符，用于区分不同的ping请求, 可以设置为进程的pid。
+- seq: 16bit，一个从零开始的数字，每当形成新的回显请求时就加一。这用于检测回显消息在传输过程中是否消失或重新排序。
+- data: 长度受到MTU的限制，最大为1500字节，即1500 - 20 - 8 - 4 = 1468字节。 
+
+
+```c++
+/*
+ * ICMP Destination Unreachable
+ *  __________________________________
+ * |  unused | len  | var   | data...|
+ * |_________|______|_______|________|
+ * | 8bits   | 8bits| 16bits|        |
+ * |_________|______|_______|________|
+ */
+
+struct icmp_v4_dst_unreachable {
+    u_int8_t unused;
+    u_int8_t len;
+    u_int16_t var;
+    u_int8_t data[];
+} __attribute__((packed));
+
+```
+- len: 原始数据报的长度，对于 IPv4，以32字节为一个单位。
+- var: 可能是一个标识符，也可能是一个错误代码。
