@@ -4,19 +4,19 @@
 
 void data_transfer_socket_read(evutil_socket_t sockfd, short event_type, void *arg)
 {
-    printf("data_transfer_socket_read\n");
     struct event_base *base = (struct event_base *)arg;
     struct sockaddr_in addr;
     socklen_t addr_len = sizeof(addr);
     char buf[BUFSIZE];
     int len = recvfrom(sockfd, buf, BUFSIZE, 0, (struct sockaddr *)&addr, &addr_len);
     if (len > 0) {
+        printf(">>> read from sock fd: %d\n", len);
         struct skbuff_t *skb = skb_alloc(len);
         memcpy(skb->data, buf, len);
         skb->len = len;
         queue_push(tapfd_queue, skb);
+        event_add(tapfd_event_wr, NULL);
     }
-    event_add(tapfd_event_wr, NULL);
 } 
 
 void data_transfer_socket_write(evutil_socket_t sockfd, short event_type, void *arg)
@@ -50,14 +50,14 @@ void data_transfer_tapfd_read(evutil_socket_t tapfd, short event_type, void *arg
 
 void data_transfer_tapfd_write(evutil_socket_t tapfd, short event_type, void *arg)
 {
-    printf("data_transfer_tapfd_write\n");
     struct event_base *base = (struct event_base *)arg;
     struct skbuff_t *skb = queue_pop(tapfd_queue);
     if (skb == NULL)
         return;
     int size = write(tapfd, skb->data, skb->len);
-    printf("data_transfer_tapfd_write: %d\n", size);
+    printf(">>> write to tap fd: %d\n", size);
     skb_free(skb);
+    if (queue_size(tapfd_queue) > 0) event_add(tapfd_event_wr, NULL);
 }
 
 int run_client(int argc, char **argv)
@@ -66,7 +66,7 @@ int run_client(int argc, char **argv)
     char *buf = malloc(BUFSIZE);
 
     tapfd = tun_alloc(dev, IFF_TAP | IFF_NO_PI);
-    system("sudo bash ./uptap.sh tap_client 10.0.0.1/24");
+    system("sudo bash ./uptap.sh tap_client 10.0.0.2/24");
 
     listener = socket(AF_INET, SOCK_DGRAM, 0);
     struct sockaddr_in addr;
@@ -91,6 +91,4 @@ int run_client(int argc, char **argv)
     event_add(tapfd_event_rd, NULL);
 
     event_base_dispatch(evbase); 
-
-
 }

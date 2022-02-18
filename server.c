@@ -1,6 +1,7 @@
 #include "server.h"
 
 char dev[IFNAMSIZ];
+struct netdev_t *netdev;
 void *process_eth_packet(void *data);
 
 void data_transfer_socket_read(evutil_socket_t sockfd, short event_type, void *arg)
@@ -13,7 +14,6 @@ void data_transfer_socket_read(evutil_socket_t sockfd, short event_type, void *a
     if (len > 0) {
         struct skbuff_t *skb = skb_alloc(len);
         memcpy(skb->data, buf, len);
-        printf("data_transfer_socket_read: %d\n", len);
         queue_push(tapfd_queue, skb);
     }
 } 
@@ -76,30 +76,29 @@ void *process_eth_packet(void *data) {
     char tmp_ethertype[20] = {0};
     u_int8_t mac[6] = {0};
 
-    printf("get mac address: %s\n", dev);
     get_mac_address(dev, mac);
+    get_mac_hex_type(mac, tmp_mac_addr);
+    printf("get mac address: %s(%s)\n", dev, tmp_mac_addr);
+    
     printf("start process packet... \n");
-    arp_init(mac, inet_addr("10.0.0.2"));
+    netdev = netdev_alloc("10.0.0.1", tmp_mac_addr, 1500);
+    
     while(1) {
         if (queue_size(tapfd_queue) == 0) {
             continue;
         }
-        printf("\n\n>>> process_eth_packet\n");
-        struct skbuff_t *skb = queue_pop(tapfd_queue);
         
-        printf(">>> ether type check:\n");
-        ether_packet_debug(skb);
+        struct skbuff_t *skb = queue_pop(tapfd_queue);
         
         struct eth_hdr_t *hdr = get_eth_hdr(skb);
         // arp报文处理
         if (ntohs(hdr->ethertype) == ETHERTYPE_ARP) {
-            arp_recv(skb);
+            arp_recv(skb, netdev);
         }
 
         // IP报文处理
         if (ntohs(hdr->ethertype) == ETHERTYPE_IPV4) {
-            printf("ip\n");
-            // ipv4_process(fd, hdr);
+            ipv4_recv(skb, netdev);
         }
     }
 }

@@ -1,3 +1,5 @@
+#ifndef _QUEUE_H_
+#define _QUEUE_H_
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -22,3 +24,5 @@ void queue_push(queue_t *queue, void *data);
 void *queue_pop(queue_t *queue);
 void *queue_peek(queue_t *queue);
 int queue_size(queue_t *queue);
+
+#endif

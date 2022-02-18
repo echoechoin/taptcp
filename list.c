@@ -25,7 +25,7 @@ int list_add(list_t *list, void *data) {
     return 0;
 }
 
-int list_remove(list_t *list, list_t *node, void *(free_func)(void *)) {
+int list_remove(list_t *list, list_t *node, void (*free_func)(void *)) {
     if (list == NULL || node == NULL) {
         return -1;
     }
@@ -38,7 +38,7 @@ int list_remove(list_t *list, list_t *node, void *(free_func)(void *)) {
     return 0;
 }
 
-int list_destroy(list_t *list, void *(free_func)(void *)) {
+int list_destroy(list_t *list, void (*free_func)(void *)) {
     if (list == NULL) {
         return -1;
     }

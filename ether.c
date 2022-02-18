@@ -12,7 +12,7 @@ int get_mac_hex_type(u_int8_t *mac, char *s) {
             sprintf(s, "%02x", mac[i]);
             break;
         }
-        sprintf(s, "%02x-", mac[i]);
+        sprintf(s, "%02x:", mac[i]);
         s += 3;
     }
     return 0;
@@ -44,13 +44,17 @@ int get_mac_address(char *dev_name, u_int8_t *mac) {
 
 void ether_packet_debug(struct skbuff_t *skb) {
     struct eth_hdr_t *hdr = get_eth_hdr(skb);
-    char mac_addr[20] = {0};
+    char smac_addr[20] = {0};
+    char dmac_addr[20] = {0};
     char ethertype[20] = {0};
-    printf(" ether_packet_debug:\n");
-    get_mac_hex_type(hdr->smac, mac_addr);
-    printf("    %10s %s\n", "smac:", mac_addr);
-    get_mac_hex_type(hdr->dmac, mac_addr);
-    printf("    %10s %s\n", "dmac:", mac_addr);
+    char draw_table_cmd[2048] = {0};
+    get_mac_hex_type(hdr->smac, smac_addr);
+    get_mac_hex_type(hdr->dmac, dmac_addr);
     get_ethertype_hex_type(hdr->ethertype, ethertype);
-    printf("    %10s %s\n", "ethertype:", ethertype);
+    snprintf(draw_table_cmd, 2048 - 1,
+        "python3 draw_table.py 3 smac dmac ethertype "
+        "%s %s %s",
+        smac_addr, dmac_addr, ethertype
+    );
+    system(draw_table_cmd);
 }

@@ -3,6 +3,7 @@
 #include "ether.h"
 #include "list.h"
 #include "skbuff.h"
+#include "netdev.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -58,14 +59,9 @@ struct arp_entity_t
     u_int32_t ip;
 };
 
-list_t *arp_table;
-u_int8_t mac_address[6];
-u_int32_t ip_address;
-
-int arp_init(u_int8_t *mac, u_int32_t ip);
-int arp_recv(struct skbuff_t *skb);
-int arp_request(u_int32_t sip, u_int32_t dip);
-int show_arp_table();
+int arp_recv(struct skbuff_t *skb, struct netdev_t *dev);
+int arp_request(u_int32_t sip, u_int32_t dip, struct netdev_t *dev);
+int show_arp_table(struct netdev_t *dev);
 void arp_packet_debug(struct skbuff_t *skb);
 
 #endif
