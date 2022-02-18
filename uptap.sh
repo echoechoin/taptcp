@@ -1,2 +1,8 @@
-ip link set tap0 up
-ip addr add 192.168.200.100/24 dev tap0
+#!/bin/bash
+
+dev=$1
+ip=$2
+
+ip link set $dev up
+ip addr add $ip dev $dev
+

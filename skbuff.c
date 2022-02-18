@@ -17,7 +17,7 @@ struct skbuff_t *skb_alloc(u_int32_t size)
     return skb;
 }
 
-void free_skb(struct skbuff_t *skb)
+void skb_free(struct skbuff_t *skb)
 {
     if (skb->refcnt < 1) {
         free(skb->head);

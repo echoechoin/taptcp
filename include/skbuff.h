@@ -4,7 +4,7 @@
 #include <sys/types.h>
 #include <string.h>
 
-#define BUFSIZE 2000
+#define BUFSIZE 1600
 
 struct skbuff_t {
     list_t list;
@@ -23,7 +23,7 @@ struct skbuff_t {
 };
 
 struct skbuff_t *skb_alloc(u_int32_t size);
-void free_skb(struct skbuff_t *skb);
+void skb_free(struct skbuff_t *skb);
 u_int8_t *skb_push(struct skbuff_t *skb, u_int32_t len);
 u_int8_t *skb_head(struct skbuff_t *skb);
 void *skb_reserve(struct skbuff_t *skb, u_int32_t len);

@@ -1,3 +1,5 @@
+#ifndef _ARP_H_
+#define _ARP_H_
 #include "ether.h"
 #include "list.h"
 #include "skbuff.h"
@@ -61,6 +63,9 @@ u_int8_t mac_address[6];
 u_int32_t ip_address;
 
 int arp_init(u_int8_t *mac, u_int32_t ip);
-int arp_recv(int fd, struct skbuff_t *skb);
+int arp_recv(struct skbuff_t *skb);
 int arp_request(u_int32_t sip, u_int32_t dip);
 int show_arp_table();
+void arp_packet_debug(struct skbuff_t *skb);
+
+#endif

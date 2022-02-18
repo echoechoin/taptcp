@@ -34,5 +34,6 @@ struct eth_hdr_t *get_eth_hdr(struct skbuff_t *skb);
 int get_mac_hex_type(u_int8_t *mac, char *s);
 int get_ethertype_hex_type(u_int16_t ethertype, char *s);
 int get_mac_address(char *dev_name, u_int8_t *mac);
+void ether_packet_debug(struct skbuff_t *skb);
 
 #endif // _ETHER_H_
