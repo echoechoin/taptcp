@@ -41,24 +41,24 @@ int arp_recv(struct skbuff_t *skb) {
     arp_ipv4 = (struct arp_ipv4_t *) arp_hdr->data;
     
     if (ntohs(arp_hdr->hwtype) != HWTYPE_ETHERNET) {
-        printf("arp recv: unsupported hwtype(%x)", ntohs(arp_hdr->hwtype));
+        printf(">>> arp recv: unsupported hwtype(%x)", ntohs(arp_hdr->hwtype));
         return -1;
     }
     if (arp_hdr->hwsize != HWSIZE_ETHERNET) {
-        printf("arp recv: invalid hwsize %d in Ethernet\n", arp_hdr->hwsize);
+        printf(">>> arp recv: invalid hwsize %d in Ethernet\n", arp_hdr->hwsize);
         return -1;
     }
     if (ntohs(arp_hdr->protype) != ETHERTYPE_IPV4) {
-        printf("arp recv: unsupported protype(%x)", ntohs(arp_hdr->hwtype));
+        printf(">>> arp recv: unsupported protype(%x)", ntohs(arp_hdr->hwtype));
         return -1;
     }
     if (arp_hdr->prosize != PROSIZE_IPV4) {
-        printf("arp recv: invalid prosize %d in IPV4\n", arp_hdr->hwsize);
+        printf(">>> arp recv: invalid prosize %d in IPV4\n", arp_hdr->hwsize);
         return -1;
     }
-    printf("arp recv:\n");
+    printf(">>> arp recv:\n");
     arp_packet_debug(skb);
-    
+
     if (is_target_ip(arp_ipv4) == 0) {
         arp_relpy(skb);
         return 0;
@@ -118,16 +118,19 @@ void arp_packet_debug(struct skbuff_t *skb)
     arp_hdr = get_arp_hdr(skb);
     arp_ipv4 = (struct arp_ipv4_t *) arp_hdr->data;
     char tmpip[64];
-    printf("    arp_packet_debug: hwtype: %x\n", ntohs(arp_hdr->hwtype));
-    printf("    arp_packet_debug: hwsize: %d\n", arp_hdr->hwsize);
-    printf("    arp_packet_debug: protype: 0x%04x\n", ntohs(arp_hdr->protype));
-    printf("    arp_packet_debug: prosize: %d\n", arp_hdr->prosize);
-    printf("    arp_packet_debug: op: %x\n", ntohs(arp_hdr->opcode));
-    printf("    arp_packet_debug: smac: %02x:%02x:%02x:%02x:%02x:%02x\n", arp_ipv4->smac[0], arp_ipv4->smac[1], arp_ipv4->smac[2], arp_ipv4->smac[3], arp_ipv4->smac[4], arp_ipv4->smac[5]);
-    printf("    arp_packet_debug: sip: %s\n", inet_ntop(AF_INET, &arp_ipv4->sip, tmpip, 64));
-    printf("    arp_packet_debug: dmac: %02x:%02x:%02x:%02x:%02x:%02x\n", arp_ipv4->dmac[0], arp_ipv4->dmac[1], arp_ipv4->dmac[2], arp_ipv4->dmac[3], arp_ipv4->dmac[4], arp_ipv4->dmac[5]);
-    printf("    arp_packet_debug: dip: %s\n", inet_ntop(AF_INET, &arp_ipv4->dip, tmpip, 64));
+    printf(" arp_packet_debug:\n");
+    printf("    %10s %s\n", "hwtype", ntohs(arp_hdr->hwtype) == HWTYPE_ETHERNET ? "Ethernet" : "unknown");
+    printf("    %10s %d\n", "hwsize:", arp_hdr->hwsize);
+    printf("    %10s %s\n", "protype:", ntohs(arp_hdr->protype) == ETHERTYPE_IPV4 ? "IPV4" : "unknown");
+    printf("    %10s %d\n", "prosize:", arp_hdr->prosize);
+    printf("    %10s %s\n", "opcode:", ntohs(arp_hdr->opcode) == ARP_OPCODE_REQUEST ? "ARP_REQUEST" : "ARP_REPLY");
+    printf("    %10s %02x:%02x:%02x:%02x:%02x:%02x\n", "smac:", arp_ipv4->smac[0], arp_ipv4->smac[1], arp_ipv4->smac[2], arp_ipv4->smac[3], arp_ipv4->smac[4], arp_ipv4->smac[5]);
+    printf("    %10s %s\n", "sip:", inet_ntop(AF_INET, &arp_ipv4->sip, tmpip, 64));
+    printf("    %10s %02x:%02x:%02x:%02x:%02x:%02x\n", "dmac:", arp_ipv4->dmac[0], arp_ipv4->dmac[1], arp_ipv4->dmac[2], arp_ipv4->dmac[3], arp_ipv4->dmac[4], arp_ipv4->dmac[5]);
+    printf("    %10s %s\n", "dip:", inet_ntop(AF_INET, &arp_ipv4->dip, tmpip, 64));
 }
+    
+
 
 static int arp_relpy(struct skbuff_t *skb) {
     struct arp_hdr_t *arp_hdr;
@@ -157,7 +160,7 @@ static int arp_relpy(struct skbuff_t *skb) {
     memcpy(eth_hdr->dmac, arp_ipv4->dmac, 6);
     eth_hdr->ethertype = htons(ETHERTYPE_ARP);
 
-    printf("arp reply:\n");
+    printf(">>> arp reply:\n");
     arp_packet_debug(skb);
 
     queue_push(listen_queue, skb);

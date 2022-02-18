@@ -37,7 +37,7 @@ int run_server(int argc, char **argv)
 {
     strncpy(dev, "tap_server", IFNAMSIZ);
     tapfd = tun_alloc(dev, IFF_TAP | IFF_NO_PI);
-    system("sudo bash ./uptap.sh tap_server 10.0.0.2/24");
+    system("sudo bash ./uptap.sh tap_server");
 
     listener = socket(AF_INET, SOCK_DGRAM, 0);
     struct sockaddr_in addr;
@@ -87,7 +87,7 @@ void *process_eth_packet(void *data) {
         printf("\n\n>>> process_eth_packet\n");
         struct skbuff_t *skb = queue_pop(tapfd_queue);
         
-        printf("ether type check:\n");
+        printf(">>> ether type check:\n");
         ether_packet_debug(skb);
         
         struct eth_hdr_t *hdr = get_eth_hdr(skb);

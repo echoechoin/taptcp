@@ -46,10 +46,11 @@ void ether_packet_debug(struct skbuff_t *skb) {
     struct eth_hdr_t *hdr = get_eth_hdr(skb);
     char mac_addr[20] = {0};
     char ethertype[20] = {0};
+    printf(" ether_packet_debug:\n");
     get_mac_hex_type(hdr->smac, mac_addr);
-    printf("    ether_packet_debug: smac: %s\n", mac_addr);
+    printf("    %10s %s\n", "smac:", mac_addr);
     get_mac_hex_type(hdr->dmac, mac_addr);
-    printf("    ether_packet_debug: dmac: %s\n", mac_addr);
+    printf("    %10s %s\n", "dmac:", mac_addr);
     get_ethertype_hex_type(hdr->ethertype, ethertype);
-    printf("    ether_packet_debug: ethertype: %s\n", ethertype);
+    printf("    %10s %s\n", "ethertype:", ethertype);
 }
