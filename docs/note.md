@@ -183,7 +183,7 @@ struct iphdr {
     - 010–Immediate（快速）
     - 001–Priority（优先）
     - 000–Routine（普通）
-- len: ip报文长度，16bit，报文最长为：2^16 - 1 = 65535bytes
+- len: ip报文长度，16bit，报文最长为：2^16 - 1 = 65535bytes(包含头部)
 - id: ip分片后，用于重组报文的标识符，如果相等，则为同一个ip报文
 - flags: 该字段长度为3比特位。它分为三分部分，保留位（reserved bit）为0；分片位（Don`t fragent）当为1时标识未分片，0则标识被分片；更多位（more fragments)为0标识最后分段，为1标识更多分段。
 - frag_offset: 分片偏移量，16bit
@@ -308,3 +308,87 @@ struct icmp_v4_dst_unreachable {
 ```
 - len: 原始数据报的长度，对于 IPv4，以32字节为一个单位。
 - var: 可能是一个标识符，也可能是一个错误代码。
+
+# Let's code a TCP/IP stack, 3: TCP Basics & Handshake
+
+## Reliability mechanisms 可靠性机制
+
+- 发送方需要等待接收方返回确认报文多久？
+- 接收方处理报文的速度没有发送方发送报文的速度高怎么办？
+- 网络间（如路由器）的报文处理速度没有发送方发送报文的速度高怎么办？
+
+- 接收方响应的ack报文在传输中丢失了怎么办？
+
+### 滑动窗口
+
+### 拥塞控制
+
+
+## TCP Header Format
+
+```c++
+/*
+ * TCP header(unit: bits)
+ *  _____________________________________________________________________________________________________________________________________________
+ * |  sport    | dport    | seq   | ack_seq | rsvd | hl   | fin  | syn  | rst  | psh  | ack  | urg | ece | cwr | win   | csun  | urp  | options  |
+ * |___________|__________|_______|_________|______|______|______|______|______|______|______|_____|_____|_____|_______|_______|______|__________|
+ * | 16bits    | 16bits   | 32bits| 32bits  | 4bits| 4bits| 1bit | 1bit | 1bit | 1bit | 1bit | 1bit| 1bit| 1bit| 16bits| 16bits| 8bits| 0-40bytes|
+ * |___________|__________|_______|_________|______|______|______|______|______|______|______|_____|_____|_____|_______|_______|______|__________|
+ */
+struct tcphdr {
+    u_int16_t sport;
+    u_int16_t dport;
+    u_int32_t seq;
+    u_int32_t ack_seq;
+    u_int8_t rsvd : 4;
+    u_int8_t hl : 4;
+    u_int8_t fin : 1,
+            syn : 1,
+            rst : 1,
+            psh : 1,
+            ack : 1,
+            urg : 1,
+            ece : 1,
+            cwr : 1;
+    u_int16_t win;
+    u_int16_t csum;
+    u_int16_t urp;
+    u_int8_t data[];
+} __attribute__((packed));
+```
+
+- sport: 16bit，源端口号。
+- dport: 16bit，目的端口号。
+- seq: 32bit，序列号，每次发送报文时，序列号加一。
+- ack_seq: 32bit，确认序列号，接收方收到报文时，确认序列号加一。
+- rsvd: 4bit，保留字段，默认为0。
+- hl: 4bit，首部长度。 以4字节为一个单位。
+- fin: 1bit，结束标志。
+- syn: 1bit，用于在初始握手中同步序列号。
+- rst: 1bit，重置标志。
+- psh: 1bit，指示接收方应尽快将数据“推送”到应用程序。
+- ack: 1bit，确认标志。
+- urg: 1bit，紧急标志。
+- ece: 1bit，1：通知对方已将拥塞窗口缩小；
+- cwr: 1bit，1：用于通知发送方降低其发送速率。
+- win : 16bit，接收方窗口大小。
+- csum: 16bit，校验和: 包含TCP首部和ip伪首部：
+
+    ```c++
+    /*
+     * TCP Pseudo Header:
+     *  ________________________________________________
+     * |  src_addr | dst_addr | zero  | proto | tcp_len |
+     * |___________|__________|_______|_______|_________|
+     * | 32bits    | 32bits   | 1bit  | 8bits | 16bits  |
+     * |___________|__________|_______|_______|_________|
+     */
+    ```
+    - src_addr: 32bit，源地址。
+    - dst_addr: 32bit，目的地址。
+    - zero: 1bit，保留字段，填充0
+    - proto: 8bit，协议类型，TCP为6, UDP为17。
+    - tcp_len: 16bit，TCP报文长度（首部 + 数据）。
+    
+- urp: 16bit，紧急指针。
+- data: 可变长度，用于存储数据。

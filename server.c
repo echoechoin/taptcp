@@ -28,7 +28,7 @@ void data_transfer_socket_write(evutil_socket_t sockfd, short event_type, void *
     addr.sin_family = AF_INET;
     addr.sin_port = htons(CLIENT_PORT);
     addr.sin_addr.s_addr = inet_addr(CLIENT_IP);
-    sendto(sockfd, skb->data, skb->len, 0, (struct sockaddr *)&addr, sizeof(addr));
+    int len = sendto(sockfd, skb->data, skb->len, 0, (struct sockaddr *)&addr, sizeof(addr));
     skb_free(skb);
     if (queue_size(listen_queue) > 0) event_add(listen_event_wr, NULL);
 } 

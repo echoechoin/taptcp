@@ -47,15 +47,6 @@ int icmpv4_echo_reply(struct skbuff_t *skb, struct netdev_t *dev) {
     struct icmp_v4_t *icmp_v4 = (struct icmp_v4_t *)(((void *)ipv4_hdr) + ipv4_hdr->ihl * 4);
     struct icmp_v4_echo_reply_t *echo_reply = (struct icmp_v4_echo_reply_t *)icmp_v4->data;
 
-    memcpy(eth_hdr->dmac, eth_hdr->smac, 6);
-    memcpy(eth_hdr->smac, dev->hwaddr, 6);
-    eth_hdr->ethertype = htons(ETHERTYPE_IPV4);
-
-    ipv4_hdr->daddr = ipv4_hdr->saddr;
-    ipv4_hdr->saddr = dev->addr;
-    ipv4_hdr->csum = 0;
-    ipv4_hdr->csum = checksum(ipv4_hdr, ipv4_hdr->ihl * 4);
-
     icmp_v4->type = ICMPV4_TYPE_ECHO_REPLY;
     icmp_v4->code = 0;
     icmp_v4->csum = 0;
@@ -65,14 +56,10 @@ int icmpv4_echo_reply(struct skbuff_t *skb, struct netdev_t *dev) {
     
     icmp_v4->csum = checksum(icmp_v4, ntohs(ipv4_hdr->len) - ipv4_hdr->ihl * 4);
     printf(">>> reply icmpv4 echo request\n");
-    ether_packet_debug(skb);
-    ipv4_packet_debug(skb);
     icmpv4_packet_debug(skb);
 
     skb->len = ntohs(ipv4_hdr->len) + sizeof(struct eth_hdr_t);
-    queue_push(listen_queue, skb);
-    event_add(listen_event_wr, NULL);
-    return 0;
+    return ipv4_send(skb, dev);
 }
 
 int icmpv4_recv(struct skbuff_t *skb, struct netdev_t *dev)

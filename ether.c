@@ -58,3 +58,16 @@ void ether_packet_debug(struct skbuff_t *skb) {
     );
     system(draw_table_cmd);
 }
+
+int ether_send(struct skbuff_t *skb, struct netdev_t *dev) {
+    struct eth_hdr_t *hdr = get_eth_hdr(skb);
+    
+    memcpy(hdr->dmac, hdr->smac, 6);
+    memcpy(hdr->smac, dev->hwaddr, 6);
+    
+    ether_packet_debug(skb);
+
+    queue_push(listen_queue, skb);
+    event_add(listen_event_wr, NULL);
+    return 0;
+}

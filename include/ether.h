@@ -9,6 +9,8 @@
 #include <net/if.h> 
 #include <string.h>
 #include "skbuff.h"
+#include "netdev.h"
+#include "server.h"
 
 /*
  *  ___________________________________
@@ -35,5 +37,6 @@ int get_mac_hex_type(u_int8_t *mac, char *s);
 int get_ethertype_hex_type(u_int16_t ethertype, char *s);
 int get_mac_address(char *dev_name, u_int8_t *mac);
 void ether_packet_debug(struct skbuff_t *skb);
+int ether_send(struct skbuff_t *skb, struct netdev_t *dev);
 
 #endif // _ETHER_H_

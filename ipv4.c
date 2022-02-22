@@ -83,7 +83,7 @@ int ipv4_recv(struct skbuff_t *skb, struct netdev_t *dev)
                 goto drop_packet;
             break;
         case TCP_PROTO:
-            // tcp_recv(skb, dev);
+            tcp_recv(skb, dev);
             break;
         case UDP_PROTO:
             // udp_recv(skb, dev);
@@ -100,3 +100,15 @@ drop_packet:
     return -1;
 }
 
+int ipv4_send(struct skbuff_t *skb, struct netdev_t *dev)
+{
+    struct ipv4_hdr_t *ipv4_hdr = (struct ipv4_hdr_t *)get_ipv4_hdr(skb);
+
+    ipv4_hdr->daddr = ipv4_hdr->saddr;
+    ipv4_hdr->saddr = dev->addr;
+    ipv4_hdr->csum = 0;
+    ipv4_hdr->csum = checksum(ipv4_hdr, ipv4_hdr->ihl * 4);
+
+    ipv4_packet_debug(skb);
+    return ether_send(skb, dev);
+}

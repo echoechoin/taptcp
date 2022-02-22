@@ -1,6 +1,4 @@
 #include "arp.h"
-#include "client.h"
-#include "event.h"
 
 static struct arp_hdr_t *get_arp_hdr(struct skbuff_t *skb);
 static int update_arp_table(struct arp_hdr_t *arp_hdr, struct arp_ipv4_t *arp_ipv4, struct netdev_t *dev);
@@ -71,7 +69,7 @@ int arp_request(u_int32_t sip, u_int32_t dip, struct netdev_t *dev) {
         return -1;
     }
 
-
+    // TODO
 }
 
 static struct skbuff_t *arp_alloc_skb() {
@@ -154,18 +152,9 @@ static int arp_relpy(struct skbuff_t *skb, struct netdev_t *dev) {
 
     skb_push(skb, sizeof(struct eth_hdr_t) + sizeof(struct arp_hdr_t));
 
-    struct eth_hdr_t *eth_hdr = (struct eth_hdr_t *)skb->data;
-    memcpy(eth_hdr->dmac, arp_ipv4->dmac, 6);
-    memcpy(eth_hdr->smac, dev->hwaddr, 6);
-    eth_hdr->ethertype = htons(ETHERTYPE_ARP);
-
     printf(">>> arp reply:\n");
-    ether_packet_debug(skb);
     arp_packet_debug(skb);
-
-    queue_push(listen_queue, skb);
-    event_add(listen_event_wr, NULL);
-    return 0;
+    return ether_send(skb, dev);
 }
 
 static int is_target_ip(struct arp_ipv4_t *arp_ipv4, struct netdev_t *dev) {
